@@ -71,7 +71,7 @@
 
     <header class="hero">
         <div class="hero-content">
-            <h1>Componentes <span class="highlight">a Investigar</span></h1>
+            <h1>Componentes <span class="highlight">Electronica Robotica</span></h1>
             <p>Catálogo exhaustivo de sensores, actuadores, controladores, componentes de comunicación y básicos en
                 robótica y electrónica.</p>
         </div>
@@ -180,20 +180,20 @@
                 const { jsPDF } = window.jspdf;
                 // Orientación vertical normal
                 const doc = new jsPDF('portrait');
-                
+
                 doc.setFontSize(18);
                 doc.text('Catálogo de Componentes Robóticos a Investigar', 14, 20);
-                
+
                 const tableRows = [];
                 const base64Images = [];
-                
+
                 for (let i = 0; i < componentesData.length; i++) {
                     const item = componentesData[i];
                     const base64 = await urlToBase64(item.imagen);
                     base64Images.push(base64);
 
                     // Formatear texto como un párrafo normal de lectura
-                    const textoComponente = 
+                    const textoComponente =
                         `${item.nombre.toUpperCase()}\n` +
                         `Categoría: ${item.categoria} | Tipo: ${item.tipo}\n\n` +
                         `Descripción Técnica:\n${item.descripcion}\n\n` +
@@ -205,7 +205,7 @@
                         textoComponente
                     ]);
                 }
-                
+
                 // Usar autoTable pero con estilo de lectura plano, sin parecer Excel
                 doc.autoTable({
                     theme: 'plain',
@@ -214,9 +214,9 @@
                     startY: 30,
                     styles: { fontSize: 10, cellPadding: 8, valign: 'top', textColor: [40, 40, 40] },
                     bodyStyles: { minCellHeight: 45 },
-                    columnStyles: { 
+                    columnStyles: {
                         0: { cellWidth: 50 }, // Margen izquierdo para empotrar la imagen
-                        1: { cellWidth: 'auto' } 
+                        1: { cellWidth: 'auto' }
                     },
                     didDrawCell: function (data) {
                         // Dibujar borde inferior muy sutil para separar cada componente
@@ -224,7 +224,7 @@
                             doc.setDrawColor(220, 220, 220);
                             doc.line(data.cell.x - 50, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
                         }
-                        
+
                         // Renderizar imagen
                         if (data.section === 'body' && data.column.index === 0) {
                             const base64 = base64Images[data.row.index];
@@ -241,7 +241,7 @@
                         }
                     }
                 });
-                
+
                 doc.save('Catálogo_de_Componentes_Roboticos.pdf');
             } catch (err) {
                 console.error("Error fatal en creación de PDF", err);
