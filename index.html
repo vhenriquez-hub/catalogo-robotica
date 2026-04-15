@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,6 +18,7 @@
             margin-bottom: 2rem;
             justify-content: center;
         }
+
         .filter-btn {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -27,10 +29,12 @@
             font-weight: 500;
             transition: all 0.2s;
         }
+
         .filter-btn:hover {
             border-color: var(--primary);
             color: var(--primary);
         }
+
         .filter-btn.active {
             background: var(--primary);
             color: white;
@@ -41,6 +45,7 @@
             display: flex;
             flex-direction: column;
         }
+
         .sensor-info p.desc {
             font-size: 0.85rem;
             color: var(--text-muted);
@@ -48,6 +53,7 @@
             line-height: 1.5;
             flex-grow: 1;
         }
+
         .noob-desc {
             background-color: var(--primary-light);
             border-left: 4px solid var(--primary);
@@ -60,17 +66,19 @@
         }
     </style>
 </head>
+
 <body>
 
     <header class="hero">
         <div class="hero-content">
             <h1>Componentes <span class="highlight">a Investigar</span></h1>
-            <p>Catálogo exhaustivo de sensores, actuadores, controladores, componentes de comunicación y básicos en robótica y electrónica.</p>
+            <p>Catálogo exhaustivo de sensores, actuadores, controladores, componentes de comunicación y básicos en
+                robótica y electrónica.</p>
         </div>
     </header>
 
     <main class="container">
-        
+
         <div class="filters" id="filters">
             <button class="filter-btn active" data-filter="all">Todos</button>
             <button class="filter-btn" data-filter="Sensores">Sensores</button>
@@ -78,8 +86,9 @@
             <button class="filter-btn" data-filter="Controladores">Controladores</button>
             <button class="filter-btn" data-filter="Comunicación">Comunicación</button>
             <button class="filter-btn" data-filter="Componentes Básicos">Comp. Básicos</button>
-            <button id="downloadPdf" class="filter-btn" style="background-color: var(--secondary); color: white; border-color: var(--secondary); display: flex; align-items: center; gap: 0.5rem; margin-left: auto;">
-                📥 Descargar Excel PDF
+            <button id="downloadPdf" class="filter-btn"
+                style="background-color: var(--secondary); color: white; border-color: var(--secondary); display: flex; align-items: center; gap: 0.5rem; margin-left: auto;">
+                📥 Descargar PDF
             </button>
         </div>
 
@@ -169,15 +178,15 @@
 
             try {
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('landscape'); 
-                
+                const doc = new jsPDF('landscape');
+
                 doc.setFontSize(16);
                 doc.text('Lista de Componentes Robóticos a Investigar', 14, 20);
-                
+
                 const tableColumn = ["Imagen", "Categoría", "Tipo", "Nombre", "Especificaciones y Descripción"];
                 const tableRows = [];
                 const base64Images = [];
-                
+
                 for (let i = 0; i < componentesData.length; i++) {
                     const item = componentesData[i];
                     // Descargar imagen a base64
@@ -192,7 +201,7 @@
                         "Habilidades: " + item.caracteristicas + "\n\nSimple: " + item.descripcion2
                     ]);
                 }
-                
+
                 // Se usa autoTable con hook para dibujar las imágenes
                 doc.autoTable({
                     head: [tableColumn],
@@ -201,14 +210,14 @@
                     styles: { fontSize: 8, cellPadding: 3, valign: 'middle' },
                     headStyles: { fillColor: [14, 165, 233] },
                     bodyStyles: { minCellHeight: 25 },
-                    columnStyles: { 
+                    columnStyles: {
                         0: { cellWidth: 35 },
                         1: { cellWidth: 25 },
                         2: { cellWidth: 35 },
                         3: { cellWidth: 40 },
-                        4: { cellWidth: 'auto' } 
+                        4: { cellWidth: 'auto' }
                     },
-                    didDrawCell: function(data) {
+                    didDrawCell: function (data) {
                         if (data.section === 'body' && data.column.index === 0) {
                             const base64 = base64Images[data.row.index];
                             if (base64) {
@@ -216,17 +225,17 @@
                                     // Determinar si es PNG o JPEG basados en el protocolo de datos
                                     let type = 'JPEG';
                                     if (base64.indexOf('image/png') !== -1) type = 'PNG';
-                                    
+
                                     // Dibujar imagen con pequeño padding
                                     doc.addImage(base64, type, data.cell.x + 2, data.cell.y + 2, 31, 21);
-                                } catch(e) {
+                                } catch (e) {
                                     console.error("Error drawing image in pdf", e);
                                 }
                             }
                         }
                     }
                 });
-                
+
                 doc.save('Lista_de_Componentes_con_Imagenes.pdf');
             } catch (err) {
                 console.error("Error fatal en creación de PDF", err);
@@ -241,4 +250,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </body>
+
 </html>
