@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Componentes Robóticos - Completa</title>
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+        .filter-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .sensor-card {
+            display: flex;
+            flex-direction: column;
+        }
+        .sensor-info p.desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+        .noob-desc {
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            padding: 0.75rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <div class="hero-content">
+            <h1>Componentes <span class="highlight">a Investigar</span></h1>
+            <p>Catálogo exhaustivo de sensores, actuadores, controladores, componentes de comunicación y básicos en robótica y electrónica.</p>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <div class="filters" id="filters">
+            <button class="filter-btn active" data-filter="all">Todos</button>
+            <button class="filter-btn" data-filter="Sensores">Sensores</button>
+            <button class="filter-btn" data-filter="Actuadores">Actuadores</button>
+            <button class="filter-btn" data-filter="Controladores">Controladores</button>
+            <button class="filter-btn" data-filter="Comunicación">Comunicación</button>
+            <button class="filter-btn" data-filter="Componentes Básicos">Comp. Básicos</button>
+            <button id="downloadPdf" class="filter-btn" style="background-color: var(--secondary); color: white; border-color: var(--secondary); display: flex; align-items: center; gap: 0.5rem; margin-left: auto;">
+                📥 Descargar Excel PDF
+            </button>
+        </div>
+
+        <div class="sensor-grid" id="grid">
+            <!-- Cards populated dynamically via JS -->
+        </div>
+    </main>
+
+    <!-- Data Array -->
+    <script src="data.js"></script>
+    <script>
+        const grid = document.getElementById('grid');
+        const filters = document.querySelectorAll('.filter-btn');
+
+        function renderCards(data) {
+            grid.innerHTML = '';
+            data.forEach(item => {
+                const article = document.createElement('article');
+                article.className = 'sensor-card';
+                article.innerHTML = `
+                    <div class="sensor-image-wrapper">
+                        <img src="${item.imagen}" alt="${item.nombre}" class="sensor-image" onerror="this.src='https://placehold.co/400x300/e2e8f0/64748b?text=Imagen+No+Disponible'">
+                    </div>
+                    <div class="sensor-info">
+                        <span class="badge">${item.categoria}</span>
+                        <h2>${item.nombre}</h2>
+                        <p class="desc">${item.descripcion}</p>
+                        <div class="noob-desc">
+                            <strong>En términos simples:</strong> ${item.descripcion2}
+                        </div>
+                        <div class="attributes">
+                            <div class="attr">
+                                <span class="attr-label">Tipo:</span>
+                                <span class="attr-value">${item.tipo}</span>
+                            </div>
+                            <div class="attr">
+                                <span class="attr-label">Especificaciones:</span>
+                                <span class="attr-value" style="font-size: 0.75rem; line-height:1.2; text-align:right;">${item.caracteristicas}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(article);
+            });
+        }
+
+        renderCards(componentesData);
+
+        filters.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filters.forEach(f => f.classList.remove('active'));
+                btn.classList.add('active');
+                const filter = btn.getAttribute('data-filter');
+                if (filter === 'all') {
+                    renderCards(componentesData);
+                } else {
+                    const filtered = componentesData.filter(d => d.categoria === filter);
+                    renderCards(filtered);
+                }
+            });
+        });
+
+        async function urlToBase64(url) {
+            try {
+                // Fetch image anonymously to avoid CORS issues if server allows it
+                const response = await fetch(url, { mode: 'cors' });
+                const blob = await response.blob();
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (e) {
+                console.warn("CORS/Fetch error on image:", url);
+                return null;
+            }
+        }
+
+        // Generación y descarga de PDF asíncrona con imágenes
+        document.getElementById('downloadPdf').addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Generando PDF (Cargando imágenes)...';
+            btn.style.pointerEvents = "none";
+            btn.style.opacity = "0.7";
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('landscape'); 
+                
+                doc.setFontSize(16);
+                doc.text('Lista de Componentes Robóticos a Investigar', 14, 20);
+                
+                const tableColumn = ["Imagen", "Categoría", "Tipo", "Nombre", "Especificaciones y Descripción"];
+                const tableRows = [];
+                const base64Images = [];
+                
+                for (let i = 0; i < componentesData.length; i++) {
+                    const item = componentesData[i];
+                    // Descargar imagen a base64
+                    const base64 = await urlToBase64(item.imagen);
+                    base64Images.push(base64);
+
+                    tableRows.push([
+                        "", // Espacio vacío para la imagen
+                        item.categoria,
+                        item.tipo,
+                        item.nombre,
+                        "Habilidades: " + item.caracteristicas + "\n\nSimple: " + item.descripcion2
+                    ]);
+                }
+                
+                // Se usa autoTable con hook para dibujar las imágenes
+                doc.autoTable({
+                    head: [tableColumn],
+                    body: tableRows,
+                    startY: 25,
+                    styles: { fontSize: 8, cellPadding: 3, valign: 'middle' },
+                    headStyles: { fillColor: [14, 165, 233] },
+                    bodyStyles: { minCellHeight: 25 },
+                    columnStyles: { 
+                        0: { cellWidth: 35 },
+                        1: { cellWidth: 25 },
+                        2: { cellWidth: 35 },
+                        3: { cellWidth: 40 },
+                        4: { cellWidth: 'auto' } 
+                    },
+                    didDrawCell: function(data) {
+                        if (data.section === 'body' && data.column.index === 0) {
+                            const base64 = base64Images[data.row.index];
+                            if (base64) {
+                                try {
+                                    // Determinar si es PNG o JPEG basados en el protocolo de datos
+                                    let type = 'JPEG';
+                                    if (base64.indexOf('image/png') !== -1) type = 'PNG';
+                                    
+                                    // Dibujar imagen con pequeño padding
+                                    doc.addImage(base64, type, data.cell.x + 2, data.cell.y + 2, 31, 21);
+                                } catch(e) {
+                                    console.error("Error drawing image in pdf", e);
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                doc.save('Lista_de_Componentes_con_Imagenes.pdf');
+            } catch (err) {
+                console.error("Error fatal en creación de PDF", err);
+                alert("Ocurrió un error al generar el PDF.");
+            }
+
+            btn.innerHTML = originalText;
+            btn.style.pointerEvents = "auto";
+            btn.style.opacity = "1";
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+</body>
+</html>
