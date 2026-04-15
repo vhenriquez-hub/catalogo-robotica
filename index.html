@@ -178,56 +178,62 @@
 
             try {
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('landscape');
-
-                doc.setFontSize(16);
-                doc.text('Lista de Componentes Robóticos a Investigar', 14, 20);
-
-                const tableColumn = ["Imagen", "Categoría", "Tipo", "Nombre", "Especificaciones y Descripción"];
+                // Orientación vertical normal
+                const doc = new jsPDF('portrait');
+                
+                doc.setFontSize(18);
+                doc.text('Catálogo de Componentes Robóticos a Investigar', 14, 20);
+                
                 const tableRows = [];
                 const base64Images = [];
-
+                
                 for (let i = 0; i < componentesData.length; i++) {
                     const item = componentesData[i];
-                    // Descargar imagen a base64
                     const base64 = await urlToBase64(item.imagen);
                     base64Images.push(base64);
 
+                    // Formatear texto como un párrafo normal de lectura
+                    const textoComponente = 
+                        `${item.nombre.toUpperCase()}\n` +
+                        `Categoría: ${item.categoria} | Tipo: ${item.tipo}\n\n` +
+                        `Descripción Técnica:\n${item.descripcion}\n\n` +
+                        `En términos simples:\n${item.descripcion2}\n\n` +
+                        `Especificaciones:\n${item.caracteristicas}`;
+
                     tableRows.push([
                         "", // Espacio vacío para la imagen
-                        item.categoria,
-                        item.tipo,
-                        item.nombre,
-                        "Habilidades: " + item.caracteristicas + "\n\nSimple: " + item.descripcion2
+                        textoComponente
                     ]);
                 }
-
-                // Se usa autoTable con hook para dibujar las imágenes
+                
+                // Usar autoTable pero con estilo de lectura plano, sin parecer Excel
                 doc.autoTable({
-                    head: [tableColumn],
+                    theme: 'plain',
+                    showHead: 'never',
                     body: tableRows,
-                    startY: 25,
-                    styles: { fontSize: 8, cellPadding: 3, valign: 'middle' },
-                    headStyles: { fillColor: [14, 165, 233] },
-                    bodyStyles: { minCellHeight: 25 },
-                    columnStyles: {
-                        0: { cellWidth: 35 },
-                        1: { cellWidth: 25 },
-                        2: { cellWidth: 35 },
-                        3: { cellWidth: 40 },
-                        4: { cellWidth: 'auto' }
+                    startY: 30,
+                    styles: { fontSize: 10, cellPadding: 8, valign: 'top', textColor: [40, 40, 40] },
+                    bodyStyles: { minCellHeight: 45 },
+                    columnStyles: { 
+                        0: { cellWidth: 50 }, // Margen izquierdo para empotrar la imagen
+                        1: { cellWidth: 'auto' } 
                     },
                     didDrawCell: function (data) {
+                        // Dibujar borde inferior muy sutil para separar cada componente
+                        if (data.column.index === 1) {
+                            doc.setDrawColor(220, 220, 220);
+                            doc.line(data.cell.x - 50, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
+                        }
+                        
+                        // Renderizar imagen
                         if (data.section === 'body' && data.column.index === 0) {
                             const base64 = base64Images[data.row.index];
                             if (base64) {
                                 try {
-                                    // Determinar si es PNG o JPEG basados en el protocolo de datos
                                     let type = 'JPEG';
                                     if (base64.indexOf('image/png') !== -1) type = 'PNG';
-
-                                    // Dibujar imagen con pequeño padding
-                                    doc.addImage(base64, type, data.cell.x + 2, data.cell.y + 2, 31, 21);
+                                    // Dibujar imagen con proporciones apropiadas
+                                    doc.addImage(base64, type, data.cell.x + 2, data.cell.y + 4, 40, 30);
                                 } catch (e) {
                                     console.error("Error drawing image in pdf", e);
                                 }
@@ -235,8 +241,8 @@
                         }
                     }
                 });
-
-                doc.save('Lista_de_Componentes_con_Imagenes.pdf');
+                
+                doc.save('Catálogo_de_Componentes_Roboticos.pdf');
             } catch (err) {
                 console.error("Error fatal en creación de PDF", err);
                 alert("Ocurrió un error al generar el PDF.");
